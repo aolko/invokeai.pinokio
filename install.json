@@ -27,7 +27,7 @@
   }, {
     "method": "shell.enter",
     "params": {
-      "message": "pip install \"InvokeAI[xformers]\" --use-pep517 --extra-index-url https://download.pytorch.org/whl/cu118",
+      "message": "pip install \"InvokeAI[xformers]\" --use-pep517 --extra-index-url \"https://download.pytorch.org/whl/cu118\"",
       "on": [{
         "event": null,
         "return": true
