@@ -5,41 +5,63 @@ const exists = (filepath) => {
   return new Promise(r=>fs.access(filepath, fs.constants.F_OK, e => r(!e)))
 }
 module.exports = {
-  title: "InvokeAI",
-  description: "Generative AI for Professional Creatives",
+  title: "SD WebUI Forge",
+  description: "Stable Diffusion UI with patches by lllyasviel",
   icon: "icon.png",
   menu: async (kernel) => {
-    let installed = await exists(path.resolve(__dirname, "InvokeAI", "env"))
-    if (installed) {
-      let session = (await kernel.loader.load(path.resolve(__dirname, "session.json"))).resolved
-      return [{
-        html: "Follow instructions before launch",
-        href: "https://github.com/eudard/invokeai.pinokio",
-        target: "_blank"
-      },{
-        when: "start.json",
-        on: "<i class='fa-solid fa-spin fa-circle-notch'></i> Running",
-        type: "label",
-        href: "start.json"
-      }, {
-        when: "start.json",
-        off: "<i class='fa-solid fa-power-off'></i> Launch",
-        href: "start.json?fullscreen=true&run=true",
-      }, {
-        when: "start.json",
-        on: (session && session.url ? "<i class='fa-solid fa-rocket'></i> Open Web UI" : null),
-        href: (session && session.url ? session.url : null),
-        target: "_blank"
-      }, {
-        when: "start.json",
-        on: "<i class='fa-solid fa-desktop'></i> Server",
-        href: "start.json?fullscreen=true"
-      }]
+    let installed = await kernel.exists(__dirname, "sd-webui-forge", "venv")
+    let installing = kernel.running(__dirname, "install.js")
+    let configure = {
+      icon: "fa-solid fa-gear",
+      text: "Configure",
+      href: (kernel.platform === 'win32' ? "sd-webui-forge/webui-user.bat?mode=source#L6" : "sd-webui-forge/webui-user.sh?mode=source#L13")
+    }
+    if (installing) {
+      return [{ icon: "fa-solid fa-plug", text: "Installing", href: "install.js" }]
+    } else if (installed) {
+      let running = kernel.running(__dirname, "start.js")
+      let arr
+      if (running) {
+        let local = kernel.memory.local[path.resolve(__dirname, "start.js")]
+        if (local.url) {
+          arr = [{
+            icon: "fa-solid fa-rocket",
+            text: "Open Web UI",
+            href: local.url
+          }, {
+            icon: "fa-solid fa-desktop",
+            text: "Terminal",
+            href: "start.js"
+          }, configure]
+        } else {
+          arr = [{
+            icon: "fa-solid fa-desktop",
+            text: "Terminal",
+            href: "start.js"
+          }, configure]
+        }
+      } else {
+        arr = [{
+          icon: "fa-solid fa-rocket",
+          text: "Start",
+          href: "start.js"
+        },
+        {
+          icon: "fa-solid fa-rotate",
+          text: "Update",
+          href: "update.json"
+        }, configure]
+      }
+      return arr
     } else {
       return [{
-        html: '<i class="fa-solid fa-plug"></i> Install',
-        type: "link",
-        href: "install.json?run=true&fullscreen=true"
+        icon: "fa-solid fa-plug",
+        text: "Install",
+        href: "install.js"
+      }, configure, {
+        icon: "fa-solid fa-rotate",
+        text: "Update",
+        href: "update.json"
       }]
     }
   }
